@@ -24,14 +24,10 @@ fn first_number(s : &str, part2: bool) -> i32 {
         0
     } else if let Some(v) = s.chars().next().unwrap_or('z').to_digit(10) {
         v as i32
+    } else if let Some(v) = WORDVALUES.iter().find_map(|(w, v)| if part2 && s.starts_with(w) {Some(v)} else {None}) {
+        *v
     } else {
-        let word_result = WORDVALUES
-            .iter().map(|(w, v)| if part2 && s.starts_with(w) {v} else{&0}).sum::<i32>();
-        if word_result > 0 {
-            word_result
-        } else {
-            first_number(&s[1..], part2)
-        }
+        first_number(&s[1..], part2)
     }
 }
 
@@ -40,14 +36,10 @@ fn last_number(s : &str, part2: bool) -> i32 {
         0
     } else if let Some(v) = s.chars().last().unwrap_or('z').to_digit(10) {
         v as i32
+    } else if let Some(v) = WORDVALUES.iter().find_map(|(w, v)| if part2 && s.ends_with(w) {Some(v)} else{None}) {
+        *v
     } else {
-        let word_result = WORDVALUES
-            .iter().map(|(w, v)| if part2 && s.ends_with(w) {v} else{&0}).sum::<i32>();
-        if word_result > 0 {
-            word_result
-        } else {
-            last_number(&s[..s.len()-1], part2)
-        }
+        last_number(&s[..s.len()-1], part2)
     }
 }
 
