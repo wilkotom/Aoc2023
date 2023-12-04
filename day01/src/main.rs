@@ -5,7 +5,7 @@ const WORDVALUES: [(&str, i32); 9] = [("one", 1), ("two", 2), ("three", 3), ("fo
 
 fn main() -> Result<(), Box<dyn Error>>{
     let data = get_daily_input(1,2023)?;
-    println!("Part 1 result: {}", answer(&data, false));   
+    println!("Part 1 result: {}", answer(&data, false));
     println!("Part 2 result: {}", answer(&data, true));
 
     Ok(())
@@ -14,7 +14,10 @@ fn main() -> Result<(), Box<dyn Error>>{
 fn answer(data: &str, part2: bool) -> i32 {
     let mut result = 0;
     for line in data.split('\n') {
-        result += first_number(line, part2) * 10 + last_number(line, part2)
+        result += first_number(line, part2) * 10 + last_number(line, part2);
+        if part2 {
+            println!("{} {}", line, first_number(line, part2) * 10 + last_number(line, part2));
+        }
     }
     result
 }
