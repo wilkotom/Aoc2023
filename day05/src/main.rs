@@ -1,16 +1,22 @@
 use std::error::Error;
 use aochelpers::get_daily_input;
 
+
 #[derive(Debug,PartialEq)]
-struct AlmanacEntry {
-    destination: i64,
-    source: i64,
-    offset: i64
+struct Range {
+    start: i64,
+    end: i64
+}
+
+#[derive(Debug,PartialEq)]
+struct AlmanacLine {
+    delta: i64,
+    source_range: Range,
 }
 
 struct Almanac {
     seed_list: Vec<i64>,
-    mappings: Vec<Vec<AlmanacEntry>>
+    mappings: Vec<Vec<AlmanacLine>>
 }
 
 
@@ -23,7 +29,6 @@ fn main() -> Result<(), Box<dyn Error>>{
     Ok(())
 }
 fn part1(almanac: &Almanac) -> i64 {
-    
     almanac.seed_list.iter().map(|s| grow_seed(*s, almanac)).min().unwrap_or(0)
 }
 
@@ -47,16 +52,16 @@ fn grow_seeds(start:i64, range: i64, almanac: &Almanac) -> i64 {
     result
 }
 
-fn parse_almanac_entry(entry: &str) -> Vec<AlmanacEntry> {
+fn parse_almanac_entry(entry: &str) -> Vec<AlmanacLine> {
     let mut lines = entry.split('\n');
     let mut almanac_entry = Vec::new();
     lines.next();
     for line in lines {
         let mut numbers = line.split(" ").filter_map(|x| x.parse::<i64>().ok());
-        almanac_entry.push(AlmanacEntry{
-            destination: numbers.next().unwrap(), 
-            source: numbers.next().unwrap(), 
-            offset: numbers.next().unwrap()})
+        let dest = numbers.next().unwrap();
+        let source = numbers.next().unwrap();
+        let offset = numbers.next().unwrap();
+        almanac_entry.push(AlmanacLine{delta: dest - source ,source_range: Range { start: source, end: source + offset -1 }});
     }
     almanac_entry
 }
@@ -69,17 +74,49 @@ fn parse_almanac(almanac: &str) -> Almanac {
 }
 
 fn grow_seed(mut id: i64, almanac: &Almanac) -> i64{
-
     for mapping in almanac.mappings.iter() {
         for entry in mapping {
-            if id >= entry.source && id < entry.source + entry.offset {
-                id = (id - entry.source ) + entry.destination;
+            if id >= entry.source_range.start  && id <= entry.source_range.end{
+                id += entry.delta;
                 break;
             }
         }
     }
-
     id
+}
+/* 
+fn combine_ranges(starting_range: Range, next_steps: Vec<Range>) -> Vec<Range> {
+    let mut combined_ranges = vec![];
+    for next_range in next_steps {
+        if next_range.start > starting_range.end 
+    }
+
+
+    combined_ranges
+}
+*/
+fn split_ranges(old: AlmanacLine, transformation: AlmanacLine) -> Vec<AlmanacLine> {
+
+    if old.source_range.end < transformation.source_range.start || old.source_range.end > transformation.source_range.end {
+        //ranges don't overlap  
+        vec![old]
+    
+    } else if old.source_range.end >= transformation.source_range.start && old.source_range.end <= transformation.source_range.end {
+        // old is entirely within transformation area
+        vec![AlmanacLine{source_range: old.source_range, delta: old.delta + transformation.delta}]
+    } else if old.source_range.start < transformation.source_range.start && old.source_range.end < transformation.source_range.end{
+        // old overlaps transformation area to the left
+        vec![
+            AlmanacLine{source_range: Range{start: old.source_range.start, end: transformation.source_range.start -1 }, delta: old.delta},
+            AlmanacLine{source_range: Range{start: transformation.source_range.start, end: old.source_range.end}, delta: old.delta + transformation.delta}
+            ]
+    } else if old.source_range.start <= 3 {
+        // overlap to the right
+        vec!()
+    } else {
+        vec![]
+    }
+
 }
 
 #[cfg(test)]
@@ -123,7 +160,8 @@ humidity-to-location map:
     fn test_parser() {
         assert_eq!(parse_almanac_entry("seed-to-soil map:
 50 98 2
-52 50 48"), vec![AlmanacEntry{destination: 50, source: 98, offset: 2}, AlmanacEntry{destination: 52, source: 50, offset: 48}])
+52 50 48"), vec![AlmanacLine{source_range: Range{start: 98, end: 99},delta: -48 }, 
+                AlmanacLine{source_range: Range{start: 50, end: 97}, delta: 2 }])
     }
 
     #[test]

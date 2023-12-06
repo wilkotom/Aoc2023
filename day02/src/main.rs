@@ -1,4 +1,4 @@
-use std::{error::Error, collections::HashMap};
+use std::error::Error;
 use aochelpers::get_daily_input;
 
 #[derive(Eq,PartialEq,Debug)]
