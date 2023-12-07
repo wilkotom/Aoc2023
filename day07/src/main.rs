@@ -3,27 +3,17 @@ use aochelpers::get_daily_input;
 
 fn main() -> Result<(), Box<dyn Error>>{
     let hands = build_bids(&get_daily_input(7,2023)?);
-    println!("Part 1: {}", part1(&hands));
-    println!("Part 2: {}", part2(&hands));
+    println!("Part 1: {}", play_poker(&hands, |a,b| compare_hands(a, b, "23456789TJQKA")));
+    println!("Part 2: {}", play_poker(&hands, |a,b| compare_hands(a, b, "J23456789TQKA")));
     Ok(())
 }
 
-fn part1(hands: &HashMap<String, i64>) -> i64 {
+fn play_poker(hands: &HashMap<String, i64>, compare_hands: fn(&&String, &&String) -> Ordering ) -> i64 {
     let mut hand_list: Vec<&String> = hands.keys().collect::<Vec<_>>();
-    hand_list.sort_by(compare_hands_p1);
+    hand_list.sort_unstable_by(compare_hands);
     let mut total = 0;
     for (pos, hand) in hand_list.iter().enumerate() {
         total += (pos as i64 +1 ) * hands.get(*hand).unwrap();
-    }
-    total
-}
-
-fn part2(hands: &HashMap<String, i64>) -> i64 {
-    let mut hand_list = hands.keys().collect::<Vec<_>>();
-    hand_list.sort_by(compare_hands_p2);
-    let mut total = 0;
-    for (pos, hand) in hand_list.iter().enumerate() {
-        total += (pos as i64 +1) * hands.get(*hand).unwrap();
     }
     total
 }
@@ -61,23 +51,13 @@ fn score_hand(hand: &str, jokers_wild: bool) -> i64 {
             card_counts.remove(&'J');
         }   
     }
-    let l = card_counts.len();
-    if l == 1 {
-        7 // Five of a kind
-    } else if l == 2 {
-        if card_counts.values().any(|c| *c == 4) {
-            6 // Four of a kind
-        } else {
-            5 // Full House
-        }
-    } else if l == 3 {
-        if card_counts.values().any(|c| *c == 3) {
-            4 // 3 of a kind
-        } else {
-            3 // two pair
-        }
-    } else {
-        6 - l as i64
+    match card_counts.len() {
+        1 => 7,
+        2 => if card_counts.values().any(|c| *c == 4) {6} else {5},
+        3 => if card_counts.values().any(|c| *c == 3) {4} else {3}
+        4 => 2,
+        5 => 1,
+        _ => unimplemented!()
     }
 }
 
@@ -92,9 +72,7 @@ fn compare_hands(left: &&String  , right: &&String, cards_order: &str ) -> Order
             let mut right_chars = right.chars();
             for lc in left.chars() {
                 let rc = right_chars.next().unwrap();
-                let lp = cards_order.chars().position(|c| c == lc);
-                let rp = cards_order.chars().position(|c| c == rc);
-                match lp.cmp(&rp) {
+                match cards_order.chars().position(|c| c == lc).cmp(&cards_order.chars().position(|c| c == rc)) {
                     Ordering::Less => {return Ordering::Less;}
                     Ordering::Greater => {return Ordering::Greater;}
                     _ => {}
@@ -105,17 +83,6 @@ fn compare_hands(left: &&String  , right: &&String, cards_order: &str ) -> Order
         Ordering::Greater => Ordering::Greater,
     }
 }
-
-fn compare_hands_p2(left: &&String, right: &&String) -> Ordering {
-    let ordering  = "J23456789TQKA";
-    compare_hands(left, right, ordering)
-}
-
-fn compare_hands_p1(left: &&String, right: &&String) -> Ordering {
-    let ordering  = "23456789TJQKA";
-    compare_hands(left, right, ordering)
-}
-
 
 #[cfg(test)]
 mod tests {
@@ -139,12 +106,12 @@ QQQJA 483";
     #[test]
     fn test_part1() {
 let hands = build_bids(DATA);
-        assert_eq!(part1(&hands),6440);
+        assert_eq!(play_poker(&hands, |a,b| compare_hands(a, b, "23456789TJQKA")),6440);
     }
 
     #[test]
     fn test_part2() {
 let hands = build_bids(DATA);
-        assert_eq!(part2(&hands),5905);
+        assert_eq!(play_poker(&hands, |a,b| compare_hands(a, b, "J23456789TQKA")),5905);
     }
 }
