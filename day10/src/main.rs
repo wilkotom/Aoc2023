@@ -19,6 +19,8 @@ fn part2(circuit: &HashSet<Coordinate<i32>>, arena: &HashMap<Coordinate<i32>, (D
             continue;
         }
         visited.insert(next_square);
+        println!("img.putpixel({}, (25,0,0))", next_square);
+
         for neighbour in next_square.neighbours() {
             if neighbour.x >=0 && neighbour.x <= boundary.x+1 && 
                 neighbour.y >= 0 && neighbour.y <= boundary.y+1 {
@@ -136,11 +138,24 @@ fn main() -> Result<(), Box<dyn Error>>{
     let part1_arena = arena.iter()
         .filter(|e| e.0.x %2 == 0 && e.0.y %2 == 0)
         .map(|e| (Coordinate{x: e.0.x/2, y: e.0.y /2}, *e.1)).collect::<HashMap<Coordinate<i32>, _>>();
+    let boundary: Coordinate<i32> = Coordinate{
+        x: arena.keys().map(|c: &Coordinate<i32>| c.x).max().unwrap_or(0) , 
+        y: arena.keys().map(|c| c.y).max().unwrap_or(0)  };
+
+    println!("from PIL import Image\nimg = Image.new('RGB', {})", Coordinate{x: boundary.x +2, y: boundary.y +2});
+
     let (part1, _) = traverse_pipes(&part1_arena, &Coordinate { x: start.x /2, y: start.y /2 });
-    println!("Part 1: {}",part1);
+
     let (arena, start) = parse_data(&data);
+    for coord in arena.keys() {
+        println!("img.putpixel({}, (155,255,255))", coord);
+    }
     let (_, circuit) = traverse_pipes(&arena, &start);
-    println!("Part 2: {}", part2(&circuit, &arena));
+    for coord in circuit.iter() {
+        println!("img.putpixel({}, (0,155,155))", coord);
+    }
+    part2(&circuit, &arena);
+    println!("img.show()");
 
     Ok(())
 }
@@ -148,8 +163,6 @@ fn main() -> Result<(), Box<dyn Error>>{
 
 #[cfg(test)]
 mod tests {
-    use core::arch;
-
     use super::*;
 
     #[test]
