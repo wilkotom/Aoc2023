@@ -16,13 +16,13 @@ fn main() -> Result<(), Box<dyn Error>>{
     }; 
     
     roll_rocks(&mut arena, &boundary, Direction::North);
-    println!("Part 1: {}",support_beam_load(&arena, &boundary, Direction::North));
+    println!("Part 1: {}",support_beam_load(&arena, &boundary));
 
     let mut cycles = 0;
     let mut seen : HashMap<u64, i128> = HashMap::new(); 
     let mut state = hash_arena(&arena, &boundary);
     while !seen.contains_key(&state) && cycles < 200{
-        seen.insert(state.clone(), cycles);
+        seen.insert(state, cycles);
         cycle_rocks(&mut arena, &boundary);
         cycles +=1;
         state = hash_arena(&arena, &boundary);
@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn Error>>{
      for _ in 0..cycles_remaining {
         cycle_rocks(&mut arena, &boundary);
     }
-    println!("Part 2: {}",support_beam_load(&arena, &boundary, Direction::North));
+    println!("Part 2: {}",support_beam_load(&arena, &boundary));
 
     Ok(())
 }
@@ -60,96 +60,32 @@ fn cycle_rocks(arena: &mut HashMap<Coordinate<i64>, Rock>, boundary: &Coordinate
 }
 
 fn roll_rocks(arena: &mut HashMap<Coordinate<i64>, Rock>, boundary: &Coordinate<i64>, direction: Direction) {
-
-
-    match direction {
-        Direction::North => {
-            for y in 0..=boundary.y {
-                for x in 0..=boundary.x {
-                    if let Some(&Rock::Round) = arena.get(&Coordinate {x, y}) {
-                        let mut target_loc = Coordinate{x,y};
-                        while target_loc.y > 0 && !arena.contains_key(&target_loc.neighbour(direction)) {
-                            target_loc = target_loc.neighbour(direction)
-                        }
-                        if target_loc != (Coordinate{x,y}) {
-                            arena.insert(target_loc, Rock::Round);
-                            arena.remove(&Coordinate{x,y});
-                        }
-                    }
-                }
-            }
-        },
-        Direction::South => { 
-            for y in (0..=boundary.y).rev() {
-                for x in 0..=boundary.x {
-                    if let Some(&Rock::Round) = arena.get(&Coordinate {x, y}) {
-                        let mut target_loc = Coordinate{x,y};
-                        while target_loc.y < boundary.y && !arena.contains_key(&target_loc.neighbour(direction)) {
-                            target_loc = target_loc.neighbour(direction)
-                        }
-                        if target_loc != (Coordinate{x,y}) {
-                            arena.insert(target_loc, Rock::Round);
-                            arena.remove(&Coordinate{x,y});
-                        }
-                    }
-                }
-            }
-        },
-        Direction::East => {
-            for x in (0..=boundary.x).rev() {
-                for y in 0..=boundary.y {
-                    if let Some(&Rock::Round) = arena.get(&Coordinate {x, y}) {
-                        let mut target_loc = Coordinate{x,y};
-                        while target_loc.x < boundary.x && !arena.contains_key(&target_loc.neighbour(direction)) {
-                            target_loc = target_loc.neighbour(direction)
-                        }
-                        if target_loc != (Coordinate{x,y}) {
-                            arena.insert(target_loc, Rock::Round);
-                            arena.remove(&Coordinate{x,y});
-                        }
-                    }
-                }
-            }
-
-        },
-        Direction::West => {
-            for x in 0..=boundary.x {
-                for y in 0..=boundary.y {
-                    if let Some(&Rock::Round) = arena.get(&Coordinate {x, y}) {
-                        let mut target_loc = Coordinate{x,y};
-                        while target_loc.x > 0 && !arena.contains_key(&target_loc.neighbour(direction)) {
-                            target_loc = target_loc.neighbour(direction)
-                        }
-                        if target_loc != (Coordinate{x,y}) {
-                            arena.insert(target_loc, Rock::Round);
-                            arena.remove(&Coordinate{x,y});
-                        }
-                    }
-                }
-            }
-
-
-        },
+    let rocks_in_order = match direction {
+        Direction::North => (0..=boundary.y).flat_map(|y| (0..=boundary.x).map(move |x| Coordinate{x,y})).collect::<Vec<_>>(),
+        Direction::South => (0..=boundary.y).rev().flat_map(|y| (0..=boundary.x).map(move |x| Coordinate{x,y})).collect::<Vec<_>>(),
+        Direction::East => (0..=boundary.x).rev().flat_map(|x| (0..=boundary.y).map(move |y| Coordinate{x,y})).collect::<Vec<_>>(),
+        Direction::West => (0..=boundary.x).flat_map(|x| (0..=boundary.y).map(move |y| Coordinate{x,y})).collect::<Vec<_>>(),
         _ => unimplemented!()
+    };
+
+    for rock in rocks_in_order {
+        if let Some(&Rock::Round) = arena.get(&rock) {
+            let mut target_loc = rock;
+            while ((target_loc.x > 0 && direction == Direction::West) ||  (target_loc.x < boundary.x && direction == Direction::East) || 
+                    (target_loc.y > 0 && direction == Direction::North) ||  (target_loc.y < boundary.y && direction == Direction::South)) && 
+                    !arena.contains_key(&target_loc.neighbour(direction)) {
+                target_loc = target_loc.neighbour(direction)
+            }
+            if target_loc != rock {
+                arena.insert(target_loc, Rock::Round);
+                arena.remove(&rock);
+            }
+        }
     }
 }
 
-fn support_beam_load(arena: &HashMap<Coordinate<i64>, Rock>, boundary: &Coordinate<i64>, direction: Direction) -> i64 {
-    let mut result = 0;
-    match direction {
-        Direction::North => {
-            for (loc, rock) in arena.iter() {
-                if *rock == Rock::Round {
-                    result += (boundary.y +1) - loc.y;
-                }
-            }
-        },
-        Direction::East => unimplemented!(),
-        Direction::South => unimplemented!(),
-        Direction::West => unimplemented!(),
-        _ => unimplemented!()
-    }
-    result
+fn support_beam_load(arena: &HashMap<Coordinate<i64>, Rock>, boundary: &Coordinate<i64>) -> i64 {
+    arena.iter().filter_map(|(c, r)| if *r == Rock::Round {Some(boundary.y +1 - c.y)} else {None}).sum()
 }
 
 fn hash_arena(arena: &HashMap<Coordinate<i64>, Rock>,  boundary: &Coordinate<i64>) -> u64 {
@@ -169,6 +105,7 @@ fn hash_arena(arena: &HashMap<Coordinate<i64>, Rock>,  boundary: &Coordinate<i64
     hasher.finish()
     
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -207,9 +144,6 @@ const EXAMPLE_ROLLED: &str =
         cycle_rocks(&mut arena, &boundary);
         let cycle_one = parse_data(EXAMPLE_ROLLED);
         assert_eq!(arena, cycle_one);
-        for key in arena.keys() {
-            assert!(cycle_one.contains_key(key))
-        }
     }
 }
 
