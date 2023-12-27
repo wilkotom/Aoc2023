@@ -9,7 +9,7 @@ fn main() -> Result<(), Box<dyn Error>>{
     Ok(())
 }
 
-fn part1(plans: &Vec<(String,Vec<usize>)>) -> usize {
+fn part1(plans: &[(String,Vec<usize>)]) -> usize {
     let mut cache: HashMap<(String,Vec<usize>), usize> = HashMap::new();
     plans.iter().map(|v: &(String, Vec<usize>)|validate_springs(&v.0,&v.1, &mut cache)).sum::<usize>()
 }
@@ -41,9 +41,9 @@ fn validate_springs(springs: &str, counts: &[usize], cache: &mut HashMap<(String
 
     let cache_key = (springs.to_string(), counts.to_vec());
     let result = if let Some(res) = cache.get(&cache_key) {
-        *res
-    } else if springs.starts_with('.') {
-        validate_springs(&springs[1..], counts, cache)
+        return *res
+    } else if let Some(word) = springs.strip_prefix('.') {
+        validate_springs(word, counts, cache)
     } else if springs.starts_with('?') {
         let unknown_is_spring: String = springs.replacen('?', "#", 1);
         validate_springs(&unknown_is_spring, counts, cache) + validate_springs(&springs[1..], counts, cache)

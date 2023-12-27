@@ -148,8 +148,6 @@ fn main() -> Result<(), Box<dyn Error>>{
 
 #[cfg(test)]
 mod tests {
-    use core::arch;
-
     use super::*;
 
     #[test]

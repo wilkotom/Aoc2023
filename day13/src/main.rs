@@ -9,7 +9,6 @@ fn main() -> Result<(), Box<dyn Error>>{
 }
 
 fn score_mirror(grid: &str, find_fn: fn(&Vec<String>) -> Option<usize> ) -> usize {
-    let x: fn(&Vec<String>) -> Option<usize> = find_reflection_line;
     let lines = grid.split('\n').map(|c| c.to_owned()).collect::<Vec<String>>();
     let vertical_reflection = find_fn(&lines).unwrap_or(0);
     let horizontal_reflection = find_fn(&reflect_grid(&lines)).unwrap_or(0);

@@ -54,7 +54,7 @@ fn score_hand(hand: &str, jokers_wild: bool) -> i64 {
     match card_counts.len() {
         1 => 7,
         2 => if card_counts.values().any(|c| *c == 4) {6} else {5},
-        3 => if card_counts.values().any(|c| *c == 3) {4} else {3}
+        3 => if card_counts.values().any(|c| *c == 3) {4} else {3},
         4 => 2,
         5 => 1,
         _ => unimplemented!()

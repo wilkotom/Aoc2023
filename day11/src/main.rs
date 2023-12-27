@@ -19,7 +19,7 @@ fn star_distance(stars: &[Coordinate<i64>], empty_cost: i64) -> i64 {
     let mut total = 0;
     for (idx, left_star) in stars.iter().enumerate() {
         for right_star in stars.iter().skip(idx+1){
-            let empty_cols_count = empty_columns.iter().filter(|c| *c > &right_star.x.min(left_star.x) && *c < &right_star.x.max(left_star.x)).count() as i64;
+            let empty_cols_count = empty_columns.iter().filter(|c: &&i64| *c > &right_star.x.min(left_star.x) && *c < &right_star.x.max(left_star.x)).count() as i64;
             let empty_rows_count = empty_rows.iter().filter(|c| *c > &right_star.y.min(left_star.y) && *c < &right_star.y.max(left_star.y)).count() as i64;
             let distance = left_star.manhattan_distance(right_star) + ((empty_cols_count + empty_rows_count) * (empty_cost -1));
             total += distance

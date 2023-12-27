@@ -1,5 +1,6 @@
 use std::{error::Error, collections::{HashMap, VecDeque, HashSet}};
 use aochelpers::{get_daily_input, Coordinate, Direction};
+
 enum TileDirection {
     NorthWestSouthEast,
     NorthEastSouthWest,
@@ -38,7 +39,6 @@ fn part2(arena: &HashMap<Coordinate<i32>, Tile>) -> usize {
     for x in 0..=boundary.x {
         max_score = max_score.max(part1(arena, Particle{heading: Direction::North, location: Coordinate{x, y:boundary.y}}));
     }
-
     for y in 0..=boundary.y {
         max_score = max_score.max(part1(arena, Particle{heading: Direction::East, location: Coordinate{x:0, y}}));
     }
@@ -111,7 +111,7 @@ fn part1(arena: &HashMap<Coordinate<i32>, Tile>, starting_point: Particle) -> us
                             Direction::East => {unvisited.push_back(Particle{heading: Direction::North, location: current_loc.location.neighbour(Direction::North)});},
                             Direction::South => {unvisited.push_back(Particle{heading: Direction::West, location: current_loc.location.neighbour(Direction::West)});},
                             Direction::West => {unvisited.push_back(Particle{heading: Direction::South, location: current_loc.location.neighbour(Direction::South)});},
-                        _ => unimplemented!()         
+                        _ => unimplemented!()
                         };
                     },
                     TileDirection::NorthSouth => unimplemented!(),
@@ -145,7 +145,6 @@ fn part1(arena: &HashMap<Coordinate<i32>, Tile>, starting_point: Particle) -> us
             },
         }
     }
-
     visited.len()
 }
 

@@ -11,7 +11,7 @@ fn main() -> Result<(), Box<dyn Error>>{
     let data = get_daily_input(24,2023)?;
     let hailstones: Vec<Hailstone> = parse_data(&data);
     println!("Part 1: {}", part1(&hailstones, 200000000000000.0, 400000000000000.0));
-    println!("Part 1: {}", part2(&hailstones));
+    println!("Part 2: {}", part2(&hailstones));
 
     Ok(())
 }
@@ -27,7 +27,6 @@ fn collision_point_2d(a: &Hailstone, b: &Hailstone, min_bound: f64) -> Option<Co
         if ay_for_zero_x == by_for_zero_x {
             return Some(Coordinate3d{x: min_bound+1.0, y: min_bound+1.0, z:0.0});
         }
-        println!("Parallel: {:?} {:?} {}", a, b, dya);
         return None;
     }
     let intersection_x = (by_for_zero_x-ay_for_zero_x)/(dya-dyb);

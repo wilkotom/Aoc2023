@@ -10,7 +10,7 @@ enum Rock {
 fn main() -> Result<(), Box<dyn Error>>{
     let data = get_daily_input(14,2023)?;
     let mut arena: HashMap<Coordinate<i64>, Rock> = parse_data(&data);
-    let boundary = Coordinate{ 
+    let boundary: Coordinate<i64> = Coordinate{ 
         x: arena.keys().map(|c| c.x).max().unwrap(),
         y: arena.keys().map(|c| c.y).max().unwrap()
     }; 

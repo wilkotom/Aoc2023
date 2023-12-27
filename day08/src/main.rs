@@ -1,43 +1,43 @@
 use std::{error::Error, collections::HashMap};
-use aochelpers::{get_daily_input,lcm};
+use aochelpers::{get_daily_input,lcm, Label};
 
 #[derive(Debug,PartialEq, Eq)]
 struct NextStage  {
-    right: String,
-    left: String
+    right: Label,
+    left: Label
 }
 
 fn main() -> Result<(), Box<dyn Error>>{
     let (directions, map) = parse_data(&get_daily_input(8,2023)?);
-    println!("Part 1: {}", follow_directions(&directions, &map, "AAA"));
+    println!("Part 1: {}", follow_directions(&directions, &map, &"AAA".parse::<Label>().unwrap()));
     println!("Part 2: {}", direct_ghosts(&directions, &map));
     Ok(())
 }
 
-fn follow_directions(directions: &str, map: &HashMap<String, NextStage>, start: &str) -> usize {
+fn follow_directions(directions: &str, map: &HashMap<Label, NextStage>, start: &Label) -> usize {
     let mut steps = 0;
-    let mut current_location = start;
+    let mut current_location = *start;
     while !current_location.ends_with('Z') {
         if directions.chars().nth(steps % directions.len()).unwrap() == 'R' {
-            current_location = &map.get(current_location).unwrap().right;
+            current_location = map.get(&current_location).unwrap().right;
         } else {
-            current_location = &map.get(current_location).unwrap().left;
+            current_location = map.get(&current_location).unwrap().left;
         }
         steps += 1
     }
     steps
 }
 
-fn direct_ghosts(directions: &str, map: &HashMap<String, NextStage>) -> usize {
-    map.keys().filter(|x| x.ends_with('A')).map(|x| follow_directions(directions, map, x)).reduce(lcm).unwrap()
+fn direct_ghosts(directions: &str, map: &HashMap<Label, NextStage>) -> usize {
+    map.keys().filter(|x| x.ends_with('A')).map(|x| follow_directions(directions, map, &x)).reduce(lcm).unwrap()
 }
 
-fn parse_data(data: &str) -> (String, HashMap<String, NextStage>) {
+fn parse_data(data: &str) -> (String, HashMap<Label, NextStage>) {
     let mut sections = data.split("\n\n");
-    let steps = sections.next().unwrap().to_string();
+    let steps = sections.next().unwrap().parse().unwrap();
     let mut map = HashMap::new();
     for line in sections.next().unwrap().split('\n') {
-        map.insert(line[0..3].to_string(), NextStage{left:line[7..10]. to_owned(), right: line[12..15].to_owned()});
+        map.insert(line[0..3].parse().unwrap(), NextStage{left:line[7..10].parse().unwrap(), right: line[12..15].parse().unwrap()});
     }
     (steps, map)
 }
@@ -60,15 +60,15 @@ ZZZ = (ZZZ, ZZZ)";
         let data =  "RL\n\nAAA = (BBB, CCC)";
         assert_eq!(parse_data(data), 
             ("RL".to_owned(), 
-            HashMap::from([("AAA".to_string(), NextStage{left: "BBB".to_string(), right: "CCC". to_string()})])));
+            HashMap::from([("AAA".parse().unwrap(), NextStage{left: "BBB".parse().unwrap(), right: "CCC".parse().unwrap()})])));
     }
 
     #[test]
     fn test_score_part1() {
         let (directions, map) = parse_data(DATA);
-        assert_eq!(follow_directions(&directions, &map, "AAA"), 2);
+        assert_eq!(follow_directions(&directions, &map, &"AAA".parse().unwrap()), 2);
         let (directions, map)= parse_data("LLR\n\nAAA = (BBB, BBB)\nBBB = (AAA, ZZZ)\nZZZ = (ZZZ, ZZZ)");
-        assert_eq!(follow_directions(&directions, &map, "AAA"), 6);
+        assert_eq!(follow_directions(&directions, &map, &"AAA".parse().unwrap()), 6);
     }
 
     #[test]
